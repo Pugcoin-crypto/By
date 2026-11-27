@@ -12,7 +12,7 @@ export async function POST(request: Request) {
   const result = await createSession({ idToken: body.idToken, password: body.password });
   if (!result.ok) return Response.json({ error: result.error }, { status: 401 });
   (await cookies()).set(SESSION_COOKIE, result.value, sessionCookieOptions);
-  return Response.json({ email: result.session.email, role: result.session.role });
+  return Response.json({ email: result.session.email, role: result.session.role, refreshToken: !!result.refreshToken });
 }
 
 /** Log out. */

@@ -44,9 +44,21 @@ export function createFirestoreStore(): Store {
   const db = getAdminDb();
   const C = COLLECTIONS;
 
+  // An empty database gets the starting menu on the first request, so a new
+  // deployment works without running `npm run seed` by hand.
+  let seeded: Promise<unknown> | null = null;
+  const ensureSeeded = () =>
+    (seeded ??= import("./firestore-seed")
+      .then(({ seedFirestore }) => seedFirestore(db))
+      .catch((e) => {
+        seeded = null;
+        throw e;
+      }));
+
   return {
     kind: "firestore",
     async getCatalog(): Promise<Catalog> {
+      await ensureSeeded();
       const [cats, prods, groups] = await Promise.all([
         db.collection(C.categories).get(),
         db.collection(C.products).get(),
@@ -59,11 +71,13 @@ export function createFirestoreStore(): Store {
       };
     },
     async getSettings() {
+      await ensureSeeded();
       const snap = await db.collection(C.settings).doc("store").get();
       if (!snap.exists) throw new Error("settings/store hiányzik – futtasd a seed szkriptet.");
       return snap.data() as StoreSettings;
     },
     async getZones() {
+      await ensureSeeded();
       const snap = await db.collection(C.deliveryZones).get();
       return snap.docs.map((d) => withId<DeliveryZone>(d));
     },

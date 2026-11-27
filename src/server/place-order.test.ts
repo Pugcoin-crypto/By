@@ -64,7 +64,7 @@ describe("placeOrder", () => {
     const s = createMemoryStore({ catalog: seedCatalog, settings: { ...seedSettings, minOrderValue: 10000 }, zones: seedZones });
     const r = await placeOrder(base, s, OPEN);
     expect(r).toMatchObject({ ok: false, status: 400 });
-    if (!r.ok) expect(r.error).toContain("10 000 Ft");
+    if (!r.ok) expect(r.error).toContain("10\u202f000 Ft");
   });
 
   it("validates phone and honeypot", async () => {

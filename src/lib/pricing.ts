@@ -147,5 +147,5 @@ export function describeModifiers(line: Pick<PricedLine, "modifiers">): string[]
 
 export function formatHuf(value: number): string {
   // Hungarian style: "3 380 Ft" with a narrow no-break space as thousands separator.
-  return `${Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, " ")} Ft`;
+  return `${Math.round(value).toString().replace(/\B(?=(\d{3})+(?!\d))/g, "\u202f")} Ft`;
 }

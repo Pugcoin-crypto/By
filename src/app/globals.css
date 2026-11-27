@@ -33,3 +33,19 @@ body {
 html {
   scroll-behavior: smooth;
 }
+
+/* Kitchen ticket: 80 mm thermal printers. */
+@media print {
+  @page {
+    size: 80mm auto;
+    margin: 0;
+  }
+  body {
+    background: #fff !important;
+    color: #000 !important;
+  }
+  .ticket {
+    width: 80mm;
+    padding: 2mm 3mm;
+  }
+}

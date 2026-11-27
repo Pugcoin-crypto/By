@@ -3,7 +3,7 @@
 // - in-memory with the seed menu, for local development and tests.
 
 import "server-only";
-import type { Catalog, DeliveryZone, Order, OrderStatus, OrderTracking, StoreSettings } from "@/lib/types";
+import type { Catalog, Category, DeliveryZone, ModifierGroup, Order, OrderStatus, OrderTracking, Product, StoreSettings } from "@/lib/types";
 
 export type NewOrder = Omit<Order, "id" | "number">;
 
@@ -28,6 +28,15 @@ export interface Store {
   listOrdersSince(sinceIso: string): Promise<Order[]>;
   /** Applies `patch` if `expectedStatus` still holds; returns the new order or null on conflict. */
   updateOrder(id: string, expectedStatus: OrderStatus, patch: OrderPatch): Promise<Order | null>;
+
+  // Admin: menu and settings.
+  saveProduct(product: Product): Promise<void>;
+  setProductAvailable(id: string, available: boolean): Promise<boolean>;
+  deleteProduct(id: string): Promise<void>;
+  saveCategory(category: Category): Promise<void>;
+  saveModifierGroup(group: ModifierGroup): Promise<void>;
+  saveZone(zone: DeliveryZone): Promise<void>;
+  updateSettings(patch: Partial<StoreSettings>): Promise<StoreSettings>;
 }
 
 let instance: Store | undefined;

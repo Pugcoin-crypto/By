@@ -106,6 +106,32 @@ export function createFirestoreStore(): Store {
         return next;
       });
     },
+    async saveProduct(product) {
+      await db.collection(C.products).doc(product.id).set(stripUndefined(product));
+    },
+    async setProductAvailable(id, available) {
+      const ref = db.collection(C.products).doc(id);
+      if (!(await ref.get()).exists) return false;
+      await ref.update({ available });
+      return true;
+    },
+    async deleteProduct(id) {
+      await db.collection(C.products).doc(id).delete();
+    },
+    async saveCategory(category) {
+      await db.collection(C.categories).doc(category.id).set(stripUndefined(category));
+    },
+    async saveModifierGroup(group) {
+      await db.collection(C.modifierGroups).doc(group.id).set(stripUndefined(group));
+    },
+    async saveZone(zone) {
+      await db.collection(C.deliveryZones).doc(zone.id).set(stripUndefined(zone));
+    },
+    async updateSettings(patch) {
+      const ref = db.collection(C.settings).doc("store");
+      await ref.set(stripUndefined(patch), { merge: true });
+      return (await ref.get()).data() as StoreSettings;
+    },
   };
 }
 

@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+/* Erden's Kebab brand tokens, taken from the current erdenskebap.hu. */
+@theme {
+  --color-primary: #000000;
+  --color-secondary: #8d7250;
+  --color-tertiary: #d2bfa6;
+  --color-text-custom-1: #5b5b5b;
+  --color-text-custom-2: #a0a0a0;
+  --color-surface: #121212;
+  --color-surface-2: #1c1c1c;
+  --font-sans: var(--font-montserrat), "Montserrat", ui-sans-serif, system-ui, sans-serif;
+  --radius-button: 12px;
+  --radius-card: 16px;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--color-primary);
+  color: #ffffff;
+}

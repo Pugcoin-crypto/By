@@ -1,0 +1,44 @@
+rules_version = '2';
+
+// Customers never write to Firestore directly: orders go through POST /api/orders,
+// which runs on the server with the Admin SDK (and bypasses these rules).
+// Staff sign in with Firebase Auth; their role is a custom claim: "admin" or "staff".
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function signedIn() { return request.auth != null; }
+    function role() { return signedIn() ? request.auth.token.role : null; }
+    function isAdmin() { return role() == 'admin'; }
+    function isStaff() { return role() in ['admin', 'staff']; }
+
+    // Public menu data.
+    match /categories/{id}     { allow read: if true; allow write: if isAdmin(); }
+    match /modifierGroups/{id} { allow read: if true; allow write: if isAdmin(); }
+    match /deliveryZones/{id}  { allow read: if true; allow write: if isAdmin(); }
+    match /settings/{id}       { allow read: if true; allow write: if isAdmin(); }
+
+    match /products/{id} {
+      allow read: if true;
+      allow create, delete: if isAdmin();
+      // Staff may only flip the "Elfogyott" switch.
+      allow update: if isAdmin()
+        || (isStaff() && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['available']));
+    }
+
+    // Orders hold personal data: staff only, and status changes go through the server.
+    match /orders/{id} {
+      allow read: if isStaff();
+      allow write: if false;
+    }
+
+    // PII-free tracking view. The document id is a long random token:
+    // anyone holding the link can read that one document, nobody can list them.
+    match /orderTracking/{token} {
+      allow get: if true;
+      allow list, write: if false;
+    }
+
+    match /dailyStats/{day} { allow read: if isAdmin(); allow write: if false; }
+    match /counters/{id}    { allow read, write: if false; }
+  }
+}

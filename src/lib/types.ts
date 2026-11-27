@@ -190,3 +190,18 @@ export interface OrderTracking {
   total: number;
   createdAt: string;
 }
+
+/** Everything the storefront needs, as served by GET /api/menu. */
+export interface PublicMenu {
+  categories: Category[];
+  products: Product[];
+  modifierGroups: ModifierGroup[];
+  zones: Pick<DeliveryZone, "id" | "city" | "postcodes" | "fee" | "minOrderValue" | "etaMinutes">[];
+  store: {
+    name: string;
+    phone: string;
+    openingHours: StoreSettings["openingHours"];
+    minOrderValue: number;
+    state: { open: true } | { open: false; reason: "paused" | "closed"; message: string };
+  };
+}

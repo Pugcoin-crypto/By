@@ -35,6 +35,17 @@ export function devLoginEnabled(): boolean {
   return !hasFirebaseCredentials() && !!process.env.ADMIN_DEV_PASSWORD;
 }
 
+/**
+ * The owner's e-mail from ADMIN_EMAIL is always admin, so the first login works
+ * without running `npm run create-admin`. Only a password account counts, and the
+ * owner should create it in the Firebase console before setting the variable.
+ */
+function bootstrapRole(decoded: { email?: string; firebase?: { sign_in_provider?: string } }): StaffRole | undefined {
+  const owner = process.env.ADMIN_EMAIL?.trim().toLowerCase();
+  if (!owner || !decoded.email || decoded.firebase?.sign_in_provider !== "password") return undefined;
+  return decoded.email.toLowerCase() === owner ? "admin" : undefined;
+}
+
 async function firebaseAuth() {
   const { getAdminDb } = await import("./store-firestore");
   getAdminDb();
@@ -45,16 +56,23 @@ async function firebaseAuth() {
 /** Creates the cookie value for a successful login, or returns an error message. */
 export async function createSession(
   input: { idToken?: string; password?: string },
-): Promise<{ ok: true; value: string; session: StaffSession } | { ok: false; error: string }> {
+): Promise<{ ok: true; value: string; session: StaffSession; refreshToken?: boolean } | { ok: false; error: string }> {
   if (hasFirebaseCredentials()) {
     if (!input.idToken) return { ok: false, error: "Hiányzó bejelentkezés." };
     const auth = await firebaseAuth();
     const decoded = await auth.verifyIdToken(input.idToken).catch(() => null);
     if (!decoded) return { ok: false, error: "Sikertelen bejelentkezés." };
-    const role = decoded.role as StaffRole | undefined;
+    let role = decoded.role as StaffRole | undefined;
+    let refreshToken = false;
+    if (role !== "admin" && bootstrapRole(decoded) === "admin") {
+      // Store the claim too, so Firestore rules (live order board) see it after a token refresh.
+      await auth.setCustomUserClaims(decoded.uid, { role: "admin" });
+      role = "admin";
+      refreshToken = true;
+    }
     if (role !== "admin" && role !== "staff") return { ok: false, error: "Ehhez a fiókhoz nincs admin jogosultság." };
     const value = await auth.createSessionCookie(input.idToken, { expiresIn: SESSION_MS });
-    return { ok: true, value, session: { uid: decoded.uid, email: decoded.email ?? "", role } };
+    return { ok: true, value, session: { uid: decoded.uid, email: decoded.email ?? "", role }, refreshToken };
   }
 
   const expected = process.env.ADMIN_DEV_PASSWORD;
@@ -72,8 +90,9 @@ export async function verifySession(value: string | undefined): Promise<StaffSes
   if (hasFirebaseCredentials()) {
     const auth = await firebaseAuth();
     const decoded = await auth.verifySessionCookie(value, true).catch(() => null);
-    const role = decoded?.role as StaffRole | undefined;
-    if (!decoded || (role !== "admin" && role !== "staff")) return null;
+    if (!decoded) return null;
+    const role = (decoded.role as StaffRole | undefined) ?? bootstrapRole(decoded);
+    if (role !== "admin" && role !== "staff") return null;
     return { uid: decoded.uid, email: decoded.email ?? "", role };
   }
   const [payload, mac] = value.split(".");

@@ -18,11 +18,13 @@ export function LoginForm() {
     setError(null);
     try {
       let body: { idToken?: string; password?: string };
+      let refreshIdToken: (() => Promise<unknown>) | null = null;
       if (firebase) {
         const { getAuth, signInWithEmailAndPassword } = await import("firebase/auth");
         const cred = await signInWithEmailAndPassword(getAuth(firebase), email, password).catch(() => null);
         if (!cred) throw new Error("Hibás e-mail cím vagy jelszó.");
         body = { idToken: await cred.user.getIdToken() };
+        refreshIdToken = () => cred.user.getIdToken(true);
       } else {
         body = { password };
       }
@@ -31,8 +33,10 @@ export function LoginForm() {
         headers: { "content-type": "application/json" },
         body: JSON.stringify(body),
       });
-      const data = (await res.json().catch(() => ({}))) as { error?: string };
+      const data = (await res.json().catch(() => ({}))) as { error?: string; refreshToken?: boolean };
       if (!res.ok) throw new Error(data.error ?? "Sikertelen bejelentkezés.");
+      // The server just granted the admin role: fetch a token that carries it (live order board).
+      if (data.refreshToken && refreshIdToken) await refreshIdToken().catch(() => undefined);
       router.replace("/admin");
       router.refresh();
     } catch (err) {

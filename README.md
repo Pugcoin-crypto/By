@@ -24,13 +24,23 @@ Firebase kulcsok nélkül az app **memóriában** fut a seed étlappal: kiprób�
 Admin belépés memória módban: `ADMIN_DEV_PASSWORD=titok npm run dev`, majd
 http://localhost:3000/admin. Firebase módban a Firebase Auth fiókkal kell belépni.
 
-## Firebase beállítás (egyszer)
+## Élesítés (egyszer)
 
-1. Firebase projekt → Firestore Database (Native mode, `eur3` vagy `europe-west`), Authentication → Email/Password.
-2. Project settings → Service accounts → új privát kulcs → a JSON tartalmát a `FIREBASE_SERVICE_ACCOUNT_KEY` változóba.
-3. Szabályok és indexek: `npx firebase-tools deploy --only firestore`.
-4. Étlap feltöltése: `npm run seed` (felülírás: `npm run seed -- --force`).
-5. Admin fiók: `npm run create-admin -- email@pelda.hu` (személyzet: `--staff`).
+Parancssor nélkül, csak a Firebase és a Vercel weboldalán:
+
+1. **Firebase projekt**: Firestore Database (Standard, `europe-west3`, production mode), Authentication → Email/Password bekapcsolva.
+2. **Szabályok**: Firestore → Rules fül → a `firestore.rules` tartalmát bemásolni → Publish.
+3. **Admin felhasználó**: Authentication → Users → Add user (a tulajdonos e-mail címe és jelszava).
+   Utána Authentication → Settings → User actions → az „Enable create (sign-up)” kikapcsolása, hogy más ne tudjon fiókot nyitni.
+4. **Vercel**: Add New → Project → a GitHub repó importálása, és az Environment Variables:
+   - `FIREBASE_SERVICE_ACCOUNT_KEY` – a letöltött service account JSON teljes tartalma
+   - `ADMIN_EMAIL` – a 3. pontban létrehozott e-mail cím (ez a fiók automatikusan admin)
+   - `NEXT_PUBLIC_FIREBASE_API_KEY`, `NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN`, `NEXT_PUBLIC_FIREBASE_PROJECT_ID`, `NEXT_PUBLIC_FIREBASE_APP_ID` – a Firebase web app configból
+5. **Deploy**. Az első kérésnél az app magától feltölti az üres adatbázist a kezdő étlappal.
+6. Firebase → Authentication → Settings → Authorized domains: a Vercel domain (és később az erdenskebap.hu) hozzáadása.
+
+Parancssorból ugyanez: `npx firebase-tools deploy --only firestore`, `npm run seed` (felülírás: `-- --force`),
+további admin/személyzet: `npm run create-admin -- email@pelda.hu [--staff]` vagy az admin Személyzet oldala.
 
 ## API
 

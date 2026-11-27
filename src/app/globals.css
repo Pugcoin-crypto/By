@@ -36,8 +36,8 @@ html {
 
 /* Kitchen ticket: 80 mm thermal printers. */
 @media print {
+  /* The page height is set per ticket by PrintOnLoad. */
   @page {
-    size: 80mm auto;
     margin: 0;
   }
   body {

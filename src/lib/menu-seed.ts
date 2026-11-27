@@ -11,6 +11,9 @@ import type {
   Product,
   StoreSettings,
 } from "./types";
+import { slug } from "./slug";
+
+export { slug };
 
 const opt = (id: string, name: string, priceDelta = 0, description?: string): ModifierOption => ({
   id,
@@ -307,13 +310,3 @@ export const seedZones: DeliveryZone[] = [
   zone("gomba", "Gomba", "2217", 800),
   zone("benye", "Bénye", "2216", 800),
 ];
-
-/** ASCII, URL-safe id: "Sima tál" → "sima-tal". */
-export function slug(s: string): string {
-  return s
-    .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}

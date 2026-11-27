@@ -1,7 +1,7 @@
 import type { DeliveryZone } from "./types";
 
 const norm = (s: string) =>
-  s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
+  s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase().replace(/\s+/g, " ").trim();
 
 /**
  * Finds the active zone for an address. The postcode decides; the city must

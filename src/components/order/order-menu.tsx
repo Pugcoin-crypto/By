@@ -11,7 +11,7 @@ import { BagIcon, BikeIcon, PlusIcon, SearchIcon } from "./icons";
 import { useMenu, usePricedCart } from "./menu-context";
 import { ProductSheet } from "./product-sheet";
 
-const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+const fold = (s: string) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
 
 export function OrderMenu() {
   const { menu } = useMenu();

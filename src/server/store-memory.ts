@@ -15,6 +15,12 @@ interface MemoryState {
 
 const clone = <T,>(v: T): T => structuredClone(v);
 
+function upsert<T extends { id: string }>(list: T[], item: T) {
+  const i = list.findIndex((x) => x.id === item.id);
+  if (i >= 0) list[i] = item;
+  else list.push(item);
+}
+
 // Survives Next.js dev hot reloads.
 const g = globalThis as unknown as { __erdensMemoryState?: MemoryState };
 
@@ -69,6 +75,32 @@ export function createMemoryStore(initial?: Partial<Pick<MemoryState, "catalog" 
       if (!o || o.status !== expectedStatus) return null;
       Object.assign(o, clone(patch));
       return clone(o);
+    },
+    async saveProduct(product) {
+      upsert(state.catalog.products, clone(product));
+    },
+    async setProductAvailable(id, available) {
+      const p = state.catalog.products.find((x) => x.id === id);
+      if (!p) return false;
+      p.available = available;
+      return true;
+    },
+    async deleteProduct(id) {
+      state.catalog.products = state.catalog.products.filter((p) => p.id !== id);
+    },
+    async saveCategory(category) {
+      upsert(state.catalog.categories, clone(category));
+      state.catalog.categories.sort((a, b) => a.sortOrder - b.sortOrder);
+    },
+    async saveModifierGroup(group) {
+      upsert(state.catalog.modifierGroups, clone(group));
+    },
+    async saveZone(zone) {
+      upsert(state.zones, clone(zone));
+    },
+    async updateSettings(patch) {
+      state.settings = { ...state.settings, ...clone(patch) };
+      return clone(state.settings);
     },
   };
 }

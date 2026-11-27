@@ -21,6 +21,9 @@ Firebase kulcsok nélkül az app **memóriában** fut a seed étlappal: kiprób�
 újraindításkor a rendelések elvesznek. Élesben a `.env.example` szerinti
 `FIREBASE_*` változók kellenek (Vercel → Project Settings → Environment Variables).
 
+Admin belépés memória módban: `ADMIN_DEV_PASSWORD=titok npm run dev`, majd
+http://localhost:3000/admin. Firebase módban a Firebase Auth fiókkal kell belépni.
+
 ## Firebase beállítás (egyszer)
 
 1. Firebase projekt → Firestore Database (Native mode, `eur3` vagy `europe-west`), Authentication → Email/Password.
@@ -37,6 +40,17 @@ Firebase kulcsok nélkül az app **memóriában** fut a seed étlappal: kiprób�
 | `GET /api/delivery-quote?zip=2200&city=Monor` | Szállítási díj, minimum, becsült idő |
 | `POST /api/orders` | Rendelés leadása; az árat a szerver számolja újra |
 | `GET /api/orders/track/{token}` | Rendeléskövetés (név, telefon, cím nélkül) |
+| `/api/admin/*` | Admin API (bejelentkezés, rendelések, étlap, beállítások, statisztika, személyzet) |
+
+## Admin (`/admin`)
+
+- **Rendelések**: élő tábla (Új → Készül → Úton / Átvehető → Lezárva), hangjelzés új rendelésnél, becsült idő (20–90 perc), elutasítás indoklással, konyhai blokk nyomtatása (80 mm).
+- **Étlap**: termékek, árak, „Elfogyott” kapcsoló, kategóriák; **Opciók**: feltét- és szószcsoportok.
+- **Beállítások**: rendelésfogadás szüneteltetése üzenettel, nyitvatartás, szállítási zónák, minimum rendelés.
+- **Statisztika**: mai és heti forgalom, rendelésszám, átlagkosár, legnépszerűbb termékek.
+- **Személyzet** (csak admin, Firebase módban): új munkatárs hozzáadása `staff` szerepkörrel.
+
+A `staff` szerepkör rendeléseket kezelhet, terméket elfogyottra állíthat és szüneteltetheti a rendelésfogadást; minden mást csak az `admin` módosíthat.
 
 ## Üzleti szabályok (2026-11-27)
 
@@ -51,7 +65,9 @@ Firebase kulcsok nélkül az app **memóriában** fut a seed étlappal: kiprób�
 
 ```
 src/lib/        közös kód (kliens + szerver): típusok, árszámítás, seed, telefonszám, nyitvatartás
-src/server/     csak szerver: adatréteg (Firestore / memória), rendelés leadás, rate limit
+src/server/     csak szerver: adatréteg (Firestore / memória), rendelés leadás, admin auth, rate limit
+src/app/admin/  admin felület
+src/components/ rendelőfelület (order/) és admin (admin/) komponensek
 src/app/api/    Route Handlerek
 scripts/        seed, admin fiók létrehozása
 firestore.rules Firestore jogosultságok

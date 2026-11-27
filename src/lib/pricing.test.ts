@@ -124,7 +124,7 @@ describe("seed menu", () => {
 
 describe("formatHuf", () => {
   it("formats with a thin space", () => {
-    expect(formatHuf(3380)).toBe("3 380 Ft");
+    expect(formatHuf(3380)).toBe("3\u202f380 Ft");
     expect(formatHuf(990)).toBe("990 Ft");
   });
 });

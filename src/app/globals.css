@@ -22,3 +22,14 @@ body {
   background: var(--color-primary);
   color: #ffffff;
 }
+
+@utility no-scrollbar {
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+html {
+  scroll-behavior: smooth;
+}
